@@ -1,0 +1,14 @@
+{
+  "name": "herrlevin/trias-client",
+  "description": "A small PHP client for the TRIAS standard",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "herrlevin_",
+      "email": "levin@herrlev.in"
+    }
+  ],
+  "require": {
+  }
+}
