@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace TriasClient\trias;
 
+use TriasClient\RequestAndParse;
 use TriasClient\types\FPTF\FPTFLocation;
 use TriasClient\types\FPTF\FPTFStop;
-use TriasClient\types\StopsRequestOptions;
+use TriasClient\types\options\StopsRequestOptions;
 use TriasClient\xml\TRIAS_LIR_NAME;
-use TriasClient\RequestAndParse;
 
 class TRIASStopsHandler
 {

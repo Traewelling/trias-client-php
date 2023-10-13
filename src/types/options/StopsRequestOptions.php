@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TriasClient\types;
+namespace TriasClient\types\options;
 
 class StopsRequestOptions
 {
