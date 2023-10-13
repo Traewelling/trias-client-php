@@ -45,10 +45,15 @@ class RequestAndParse
     {
         $string = $response->getBody()->getContents();
         $string = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $string);
-        $sxml = simplexml_load_string($string);
+        return $this->parseXML($string);
+    }
+
+    private function parseXML(string $content) {
+        $content = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $content);
+        $sxml = simplexml_load_string($content);
 
         $json = json_encode($sxml);
-        return json_decode($json, true);
+        return json_decode($json, false);
     }
 
 }
