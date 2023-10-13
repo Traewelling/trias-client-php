@@ -9,7 +9,7 @@ class DepartureRequestOptions
     public string $id;
     public ?DateTime $time = null;
     public ?int $maxResults = null;
-    public ?bool $includeSituations = null;
+    public bool $includeSituations = true;
 
     public function setId(string $id): DepartureRequestOptions
     {
@@ -29,7 +29,7 @@ class DepartureRequestOptions
         return $this;
     }
 
-    public function setIncludeSituations(?bool $includeSituations): DepartureRequestOptions
+    public function setIncludeSituations(bool $includeSituations): DepartureRequestOptions
     {
         $this->includeSituations = $includeSituations;
         return $this;
