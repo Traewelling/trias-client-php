@@ -39,7 +39,8 @@ class TRIASStopsHandler
                     $this->requestorRef,
                     $options->latitude,
                     $options->longitude,
-                    $options->radius, $maxResults
+                    $options->radius,
+                    $maxResults
                 )
             )->getXML();
         } else {
@@ -49,36 +50,46 @@ class TRIASStopsHandler
         $request  = new RequestAndParse($this->url, $payload, $this->headers);
         $result   = $request->requestAndParse();
         $result   = $result
-            ->triasServiceDelivery
-            ->triasDeliveryPayload
-            ->triasLocationInformationResponse
-            ->triasLocationResult;
+            ->ServiceDelivery
+            ->DeliveryPayload
+            ->LocationInformationResponse
+            ->LocationResult;
         $stops    = [];
 
+        if (!is_array($result)) {
+            $result = [$result];
+        }
+
         foreach ($result as $stop) {
-            $locationName = $stop->triasLocation->triasLocationName->triasText ?? null;
-            $stationName = $stop->triasLocation->triasStopPoint->triasStopPointName->triasText ?? null;
+            $locationName = $stop->Location->LocationName->Text ?? null;
+            $stationName = $stop->Location->StopPoint->StopPointName->Text ?? null;
             $location = null;
 
             if ($locationName && $stationName && !str_contains($locationName, $stationName)) {
                 $stationName = $locationName . ' ' . $stationName;
             }
 
-            if (
-                isset($stop->triasLocation->triasGeoPosition->triasLatitude)
-                && isset($stop->triasLocation->triasGeoPosition->triasLongitude)
-            ) {
+            if (isset($stop->Location->GeoPosition->Latitude) && isset($stop->Location->GeoPosition->Longitude)) {
                 $location = new FPTFLocation(
-                    (float) $stop->triasLocation->triasGeoPosition->triasLongitude,
-                    (float) $stop->triasLocation->triasGeoPosition->triasLatitude,
-                    isset($stop->triasLocation->triasGeoPosition->triasAltitude)
-                        ? (float) $stop->triasLocation->triasGeoPosition->triasAltitude
+                    (float) $stop->Location->GeoPosition->Longitude,
+                    (float) $stop->Location->GeoPosition->Latitude,
+                    isset($stop->Location->GeoPosition->Altitude)
+                        ? (float) $stop->Location->GeoPosition->Altitude
+                        : null
+                );
+            }
+            if (isset($stop->Location->GeoPosition->Latitude) && isset($stop->Location->GeoPosition->Longitude)) {
+                $location = new FPTFLocation(
+                    (float) $stop->Location->GeoPosition->Longitude,
+                    (float) $stop->Location->GeoPosition->Latitude,
+                    isset($stop->Location->GeoPosition->Altitude)
+                        ? (float) $stop->Location->GeoPosition->Altitude
                         : null
                 );
             }
 
             $stops [] = new FPTFStop(
-                $stop->triasLocation->triasStopPoint->triasStopPointRef,
+                $stop->Location->StopPoint->StopPointRef,
                 $stationName ?? '',
                 $location
             );

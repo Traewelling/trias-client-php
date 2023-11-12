@@ -45,6 +45,7 @@ class RequestAndParse
     {
         $string = $response->getBody()->getContents();
         $string = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $string);
+        $string = preg_replace("/(<\/*)(trias)/", "$1", $string);
         return $this->parseXML($string);
     }
 

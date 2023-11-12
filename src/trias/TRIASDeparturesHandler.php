@@ -37,15 +37,15 @@ class TRIASDeparturesHandler
         $request = new RequestAndParse($this->url, $payload->getXML(), $this->headers);
         $result = $request->requestAndParse();
         $result = $result
-            ->triasServiceDelivery
-            ->triasDeliveryPayload
-            ->triasStopEventResponse;
+            ->ServiceDelivery
+            ->DeliveryPayload
+            ->StopEventResponse;
 
         $departures = [];
 
         if ($options->includeSituations) {
             /*
-            $situationsResult = $result->triasStopEventResponseContext->triasSituations->triasPtSituation;
+            $situationsResult = $result->StopEventResponseContext->Situations->PtSituation;
             foreach ($situationsResult as $situation) {
                 $situations[] = new Situation(
                     title: isset($situation->siriSummary) ? $situation->siriSummary : '',
@@ -57,19 +57,19 @@ class TRIASDeparturesHandler
             }*/
         }
 
-        foreach ($result->triasStopEventResult as $departure) {
-            $departure = $departure->triasStopEvent;
-            $stop = $departure->triasThisCall->triasCallAtStop->triasStopPointRef ?? $options->id;
+        foreach ($result->StopEventResult as $departure) {
+            $departure = $departure->StopEvent;
+            $stop = $departure->ThisCall->CallAtStop->StopPointRef ?? $options->id;
 
-            $direction = $departure->triasService->triasDestinationText->triasText ?? '';
-            $lineName = $departure->triasService->triasServiceSection->triasPublishedLineName->triasText ?? '';
-            $timetabledTime = $departure->triasThisCall->triasCallAtStop->triasServiceDeparture->triasTimetabledTime
+            $direction = $departure->Service->DestinationText->Text ?? '';
+            $lineName = $departure->Service->ServiceSection->PublishedLineName->Text ?? '';
+            $timetabledTime = $departure->ThisCall->CallAtStop->ServiceDeparture->TimetabledTime
                 ?? null;
-            $estimatedTime = $departure->triasThisCall->triasCallAtStop->triasServiceDeparture->triasEstimatedTime
+            $estimatedTime = $departure->ThisCall->CallAtStop->ServiceDeparture->EstimatedTime
                 ?? null;
             $departureDelay = $estimatedTime ?round((strtotime($estimatedTime) - strtotime($timetabledTime)) / 60) : null;
-            $plannedBay = $departure->triasThisCall->triasCallAtStop->triasPlannedBay->triasText ?? null;
-            $type = $departure->triasService->triasServiceSection->triasMode->triasPtMode;
+            $plannedBay = $departure->ThisCall->CallAtStop->PlannedBay->Text ?? null;
+            $type = $departure->Service->ServiceSection->Mode->PtMode;
 
             if ($type === 'bus') {
                 $type = FPTFMode::BUS;
