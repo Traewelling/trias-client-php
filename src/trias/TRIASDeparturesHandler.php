@@ -5,6 +5,7 @@ namespace TriasClient\trias;
 use TriasClient\RequestAndParse;
 use TriasClient\types\FPTF\FPTFLine;
 use TriasClient\types\FPTF\FPTFMode;
+use TriasClient\types\FPTF\FPTFStop;
 use TriasClient\types\FPTF\FPTFStopover;
 use TriasClient\types\FPTF\FPTFSubmode;
 use TriasClient\types\FPTF\Situation;
@@ -59,16 +60,8 @@ class TRIASDeparturesHandler
 
         foreach ($result->StopEventResult as $departure) {
             $departure = $departure->StopEvent;
-            $stop = $departure->ThisCall->CallAtStop->StopPointRef ?? $options->id;
-
             $direction = $departure->Service->DestinationText->Text ?? '';
             $lineName = $departure->Service->ServiceSection->PublishedLineName->Text ?? '';
-            $timetabledTime = $departure->ThisCall->CallAtStop->ServiceDeparture->TimetabledTime
-                ?? null;
-            $estimatedTime = $departure->ThisCall->CallAtStop->ServiceDeparture->EstimatedTime
-                ?? null;
-            $departureDelay = $estimatedTime ?round((strtotime($estimatedTime) - strtotime($timetabledTime)) / 60) : null;
-            $plannedBay = $departure->ThisCall->CallAtStop->PlannedBay->Text ?? null;
             $type = $departure->Service->ServiceSection->Mode->PtMode;
 
             if ($type === 'bus') {
@@ -85,21 +78,63 @@ class TRIASDeparturesHandler
             }
 
 
-            $departures[] = new FPTFStopover(
-                stop: $stop,
-                line: new FPTFLine($lineName, $lineName),
-                mode: $type,
-                subMode: $subtype ?? null,
-                direction: $direction,
-                arrival: null,
-                arrivalDelay: null,
-                arrivalPlatform: null,
-                departure: $timetabledTime,
-                departureDelay: $departureDelay,
-                departurePlatform: $plannedBay
-            );
+            $call = $departure->ThisCall->CallAtStop;
+            $departures[] = $this->createStopover($call, $options->id, $lineName, $type, $subtype, $direction);
         }
 
         return $departures;
+    }
+
+    /**
+     * @param $call
+     * @param string $fallbackStopId
+     * @param string $lineName
+     * @param FPTFMode $type
+     * @param FPTFSubmode $subtype
+     * @param string $direction
+     * @return FPTFStopover
+     */
+    public function createStopover(
+        $call,
+        string $fallbackStopId,
+        string $lineName,
+        FPTFMode $type,
+        FPTFSubmode $subtype,
+        string $direction
+    ): FPTFStopover {
+        $stop = $call->StopPointRef ?? $fallbackStopId;
+        if (isset($call->StopPointName->Text)) {
+            $stop = new FPTFStop($stop, $call->StopPointName->Text);
+        }
+
+        $timetabledDeparture = $call->ServiceDeparture->TimetabledTime ?? null;
+        $estimatedDeparture = $call->ServiceDeparture->EstimatedTime ?? $timetabledDeparture;
+        $departureDelay = $estimatedDeparture ?
+            round((strtotime($estimatedDeparture) - strtotime($timetabledDeparture)) / 60)
+            : null;
+        $timetabledArrival = $call->ServiceArrival->TimetabledTime ?? null;
+        $estimatedArrival = $call->ServiceArrival->EstimatedTime ?? $timetabledArrival;
+        $arrivalDelay = $estimatedArrival ?
+            round((strtotime($estimatedArrival) - strtotime($timetabledArrival)) / 60)
+            : null;
+
+        $plannedBay = $call->PlannedBay->Text ?? null;
+
+
+         return new FPTFStopover(
+             stop: $stop,
+             line: new FPTFLine($lineName, $lineName),
+             mode: $type,
+             subMode: $subtype ?? null,
+             direction: $direction,
+             arrival: $estimatedArrival,
+             plannedArrival: $timetabledArrival,
+             arrivalDelay: $arrivalDelay,
+             arrivalPlatform: $plannedBay,
+             departure: $estimatedDeparture,
+             plannedDeparture: $timetabledDeparture,
+             departureDelay: $departureDelay,
+             departurePlatform: $plannedBay
+        );
     }
 }
