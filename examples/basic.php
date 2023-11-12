@@ -8,8 +8,8 @@ const URL = 'https://api.opentransportdata.swiss/trias2020';
 const REQUESTOR_REF = 'trias-client';
 const HEADERS = ['authorization' => '57c5dbbbf1fe4d000100001842c323fa9ff44fbba0b9b925f0c052d1'];
 
-testStopHandler();
-//testDeparturesHandler();
+//testStopHandler();
+testDeparturesHandler();
 
  function testStopHandler($request = 'Karlsruhe Hbf')
  {
@@ -48,8 +48,19 @@ function testDeparturesHandler()
             ->setMaxResults(50)
     );
 //8503000
+    print_r("\n=================================");
+    print_r("\nLinerun for {$test->trips[0]->line->line} ({$test->trips[0]->line->id})");
 
-    foreach ($test as $a) {
+    foreach ($test->trips[0]->stopovers as $stopover) {
+        print_r("\n=================================");
+        print_r("\n{$stopover->stop->name} ({$stopover->stop->id})");
+        print_r("\nArr: {$stopover->arrival} ({$stopover->arrivalDelay})");
+        print_r("\nDep: {$stopover->departure} ({$stopover->departureDelay})");
+        print_r("\nPlatform: {$stopover->departurePlatform}");
+    }
+    die();
+
+    foreach ($test->departures as $a) {
         print_r("\n=================================");
         print_r("\nLinie: " . $a->line->id);
         print_r("\nNach: " . $a->direction);

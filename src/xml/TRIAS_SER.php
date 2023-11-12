@@ -20,7 +20,7 @@ class TRIAS_SER
         string $locationReference,
         DateTime $departureTime,
         int $numberOfResults = 20
-    ){
+    ) {
         $this->requestorRef = $requestorRef;
         $this->locationReference = $locationReference;
         $this->departureTime = $departureTime->setTimezone(new \DateTimeZone('Europe/Berlin'))->format("Y-m-d\TH:i:s");
@@ -44,6 +44,8 @@ class TRIAS_SER
                 </Location>
                 <Params>
                     <IncludeRealtimeData>true</IncludeRealtimeData>
+                    <IncludePreviousCalls>true</IncludePreviousCalls>
+                    <IncludeOnwardCalls>true</IncludeOnwardCalls>
                     <NumberOfResults>{$this->numberOfResults}</NumberOfResults>
                     <StopEventType>departure</StopEventType>
                 </Params>
