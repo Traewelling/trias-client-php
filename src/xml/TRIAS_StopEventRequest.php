@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace TriasClient\xml;
 
-use Cassandra\Date;
 use \DateTime;
 
-class TRIAS_SER
+class TRIAS_StopEventRequest
 {
 
     private string $requestorRef;

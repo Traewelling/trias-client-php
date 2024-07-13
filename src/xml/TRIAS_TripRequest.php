@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace TriasClient\xml;
 
-class TRIAS_TR
+class TRIAS_TripRequest
 {
 
     private string $requestorRef;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace TriasClient\xml;
 
-class TRIAS_LIR_POS
+class TRIAS_LocationInformationRequest_POS
 {
 
     private string $requestorRef;
