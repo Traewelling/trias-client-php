@@ -8,7 +8,7 @@ use TriasClient\RequestAndParse;
 use TriasClient\types\FPTF\FPTFLocation;
 use TriasClient\types\FPTF\FPTFStop;
 use TriasClient\types\options\StopsRequestOptions;
-use TriasClient\xml\TRIAS_LocationInformationRequest_NAME;
+use TriasClient\xml\TRIASLocationInformationRequestName;
 
 class TRIASStopsHandler
 {
@@ -32,7 +32,7 @@ class TRIASStopsHandler
         $maxResults = $options ? $options->maxResults : 10;
 
         if (!empty($options->name)) {
-            $payload = (new TRIAS_LocationInformationRequest_NAME($this->requestorRef, $options->name, $maxResults))->getXML();
+            $payload = (new TRIASLocationInformationRequestName($this->requestorRef, $options->name, $maxResults))->getXML();
         } elseif ($options->latitude !== null && $options->longitude !== null && $options->radius !== null) {
             $payload = (
                 new TRIAS_LIR_POS(

@@ -6,7 +6,7 @@ namespace TriasClient\xml;
 
 use \DateTime;
 
-class TRIAS_StopEventRequest
+class TRIASStopEventRequest
 {
 
     private string $requestorRef;

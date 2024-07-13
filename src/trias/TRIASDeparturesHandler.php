@@ -13,7 +13,7 @@ use TriasClient\types\FPTF\FPTFSubmode;
 use TriasClient\types\FPTF\FPTFTrip;
 use TriasClient\types\FPTF\Situation;
 use TriasClient\types\options\DepartureRequestOptions;
-use TriasClient\xml\TRIAS_STOPEVENTREQUEST;
+use TriasClient\xml\TRIASStopEventRequest;
 use \DateTime;
 
 class TRIASDeparturesHandler
@@ -36,7 +36,7 @@ class TRIASDeparturesHandler
     {
         $maxResults = isset($options->maxResults) ? $options->maxResults : 10;
         $time = isset($options->time) ? $options->time : new DateTime();
-        $payload = new TRIAS_STOPEVENTREQUEST($this->requestorRef, $options->id, $time, $maxResults);
+        $payload = new TRIASStopEventRequest($this->requestorRef, $options->id, $time, $maxResults);
 
         $request = new RequestAndParse($this->url, $payload->getXML(), $this->headers);
         $result = $request->requestAndParse();
