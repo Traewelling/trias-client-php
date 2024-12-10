@@ -44,7 +44,7 @@ function testDeparturesHandler()
     $test = $test->getDepartures(
         (new \TriasClient\types\options\DepartureRequestOptions())
             ->setId('de:08212:90')
-            //->setTime('2023-10-13T21:35:00+01:00')
+            //->setTime('2023-11-12T22:35:00+01:00')
             ->setMaxResults(50)
     );
 //8503000
@@ -58,11 +58,12 @@ function testDeparturesHandler()
         print_r("\nDep: {$stopover->departure} ({$stopover->departureDelay})");
         print_r("\nPlatform: {$stopover->departurePlatform}");
     }
-    die();
 
     foreach ($test->departures as $a) {
         print_r("\n=================================");
         print_r("\nLinie: " . $a->line->id);
+        print_r("\nCategory: " . $a->mode->mode?->name);
+        print_r("\nSubcategory: " . $a->mode->submode?->name);
         print_r("\nNach: " . $a->direction);
         print_r("\nAbfahrt: " . $a->departure . ($a->departureDelay && $a->departureDelay > 0
                 ? ' (+' . $a->departureDelay . ')' : ''));

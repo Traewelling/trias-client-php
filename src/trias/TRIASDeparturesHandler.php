@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace TriasClient\trias;
 
 use TriasClient\RequestAndParse;
+use TriasClient\trias\Service\TypeService;
 use TriasClient\types\FPTF\FPTFLine;
-use TriasClient\types\FPTF\FPTFMode;
 use TriasClient\types\FPTF\FPTFStop;
 use TriasClient\types\FPTF\FPTFStopover;
-use TriasClient\types\FPTF\FPTFSubmode;
 use TriasClient\types\FPTF\FPTFTrip;
+use TriasClient\types\FriendlyTrias\ModeDto;
 use TriasClient\types\options\DepartureRequestOptions;
 use TriasClient\xml\TRIASStopEventRequest;
 use \DateTime;
@@ -66,26 +66,11 @@ class TRIASDeparturesHandler
             $departure = $departure->StopEvent;
             $direction = $departure->Service->DestinationText->Text ?? '';
             $lineName = $departure->Service->ServiceSection->PublishedLineName->Text ?? '';
-            $type = $departure->Service->ServiceSection->Mode->PtMode;
-
-            $subtype = null;
-            if ($type === 'bus') {
-                $type = FPTFMode::BUS;
-            } elseif ($type === 'tram') {
-                $type = FPTFMode::TRAIN;
-                $subtype = FPTFSubmode::TRAM;
-            } elseif ($type === 'metro') {
-                $type = FPTFMode::TRAIN;
-                $subtype = FPTFSubmode::METRO;
-            } elseif ($type === 'rail') {
-                $type = FPTFMode::TRAIN;
-                $subtype = FPTFSubmode::RAIL;
-            }
-
+            $dto = (new TypeService())->getMode($departure->Service->ServiceSection->Mode);
 
             $call = $departure->ThisCall->CallAtStop;
-            $departures[] = $this->createStopover($call, $options->id, $lineName, $type, $subtype, $direction);
-            $trips[] = $this->createTrip($departure, $options->id, $lineName, $type, $subtype, $direction);
+            $departures[] = $this->createStopover($call, $options->id, $lineName, $dto, $direction);
+            $trips[] = $this->createTrip($departure, $options->id, $lineName, $dto, $direction);
         }
         $response->departures = $departures;
         $response->trips = $trips;
@@ -94,12 +79,11 @@ class TRIASDeparturesHandler
     }
 
     public function createTrip(
-        $departure,
-        string $fallbackStopId,
-        string $lineName,
-        ?FPTFMode $type,
-        ?FPTFSubmode $subtype,
-        string $direction
+                 $departure,
+        string   $fallbackStopId,
+        string   $lineName,
+        ?ModeDto $mode,
+        string   $direction
     ): FPTFTrip {
         $stops = [];
         if (isset($departure->PreviousCall)) {
@@ -126,8 +110,7 @@ class TRIASDeparturesHandler
                 $stop->CallAtStop,
                 $fallbackStopId,
                 $lineName,
-                $type,
-                $subtype,
+                $mode,
                 $direction
             );
         }
@@ -152,23 +135,12 @@ class TRIASDeparturesHandler
         );
     }
 
-
-    /**
-     * @param $call
-     * @param string $fallbackStopId
-     * @param string $lineName
-     * @param FPTFMode $type
-     * @param FPTFSubmode $subtype
-     * @param string $direction
-     * @return FPTFStopover
-     */
     public function createStopover(
-        $call,
-        string $fallbackStopId,
-        string $lineName,
-        ?FPTFMode $type,
-        ?FPTFSubmode $subtype,
-        string $direction
+                 $call,
+        string   $fallbackStopId,
+        string   $lineName,
+        ?ModeDto $mode,
+        string   $direction
     ): FPTFStopover
     {
         $stop = !is_object($call->StopPointRef) && isset($call->StopPointRef) ? $call->StopPointRef : $fallbackStopId;
@@ -193,8 +165,7 @@ class TRIASDeparturesHandler
         return new FPTFStopover(
             stop: $stop,
             line: new FPTFLine($lineName, $lineName),
-            mode: $type,
-            subMode: $subtype ?? null,
+            mode: $mode,
             direction: $direction,
             arrival: $estimatedArrival,
             plannedArrival: $timetabledArrival,
