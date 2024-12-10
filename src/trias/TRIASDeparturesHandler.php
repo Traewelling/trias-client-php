@@ -11,7 +11,6 @@ use TriasClient\types\FPTF\FPTFStop;
 use TriasClient\types\FPTF\FPTFStopover;
 use TriasClient\types\FPTF\FPTFSubmode;
 use TriasClient\types\FPTF\FPTFTrip;
-use TriasClient\types\FPTF\Situation;
 use TriasClient\types\options\DepartureRequestOptions;
 use TriasClient\xml\TRIASStopEventRequest;
 use \DateTime;
@@ -69,6 +68,7 @@ class TRIASDeparturesHandler
             $lineName = $departure->Service->ServiceSection->PublishedLineName->Text ?? '';
             $type = $departure->Service->ServiceSection->Mode->PtMode;
 
+            $subtype = null;
             if ($type === 'bus') {
                 $type = FPTFMode::BUS;
             } elseif ($type === 'tram') {
