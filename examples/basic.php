@@ -61,7 +61,7 @@ function testDeparturesHandler()
 
     foreach ($test->departures as $a) {
         print_r("\n=================================");
-        print_r("\nLinie: " . $a->line->id);
+        print_r("\nLinie: " . $a->line->longName. ' (' . $a->line->line . ') // '. $a->line->id);
         print_r("\nCategory: " . $a->mode->mode?->name);
         print_r("\nSubcategory: " . $a->mode->submode?->name);
         print_r("\nNach: " . $a->direction);

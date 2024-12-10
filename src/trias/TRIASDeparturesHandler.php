@@ -65,12 +65,18 @@ class TRIASDeparturesHandler
         foreach ($result->StopEventResult as $departure) {
             $departure = $departure->StopEvent;
             $direction = $departure->Service->DestinationText->Text ?? '';
+
+            $removeModeName = $departure->Service->ServiceSection->Mode->Name->Text;
+
+            $lineId = $departure->Service->ServiceSection->LineRef ?? '';
             $lineName = $departure->Service->ServiceSection->PublishedLineName->Text ?? '';
+            $shortLineName = trim(str_replace($removeModeName, '', $lineName));
+
             $dto = (new TypeService())->getMode($departure->Service->ServiceSection->Mode);
 
             $call = $departure->ThisCall->CallAtStop;
-            $departures[] = $this->createStopover($call, $options->id, $lineName, $dto, $direction);
-            $trips[] = $this->createTrip($departure, $options->id, $lineName, $dto, $direction);
+            $departures[] = $this->createStopover($call, $options->id, $lineId, $lineName, $shortLineName, $dto, $direction);
+            $trips[] = $this->createTrip($departure, $options->id, $lineId, $lineName, $shortLineName, $dto, $direction);
         }
         $response->departures = $departures;
         $response->trips = $trips;
@@ -79,12 +85,15 @@ class TRIASDeparturesHandler
     }
 
     public function createTrip(
-                 $departure,
-        string   $fallbackStopId,
-        string   $lineName,
+        $departure,
+        string $fallbackStopId,
+        string $lineId,
+        string $lineName,
+        string $shortName,
         ?ModeDto $mode,
-        string   $direction
-    ): FPTFTrip {
+        string $direction
+    ): FPTFTrip
+    {
         $stops = [];
         if (isset($departure->PreviousCall)) {
             $stops = (is_array($departure->PreviousCall) ? $departure->PreviousCall : [$departure->PreviousCall]);
@@ -109,16 +118,18 @@ class TRIASDeparturesHandler
             $stopovers[] = $this->createStopover(
                 $stop->CallAtStop,
                 $fallbackStopId,
+                $lineId,
                 $lineName,
+                $shortName,
                 $mode,
                 $direction
             );
         }
 
         return new FPTFTrip(
-            id: $departure->Service->OperatingDayRef . "|" .$departure->Service->JourneyRef,
+            id: $departure->Service->OperatingDayRef . "|" . $departure->Service->JourneyRef,
             direction: $direction,
-            line: new FPTFLine($lineName, $lineName),
+            line: new FPTFLine($lineId, $lineName, $shortName),
             origin: $stopovers[0]->stop,
             departure: $stopovers[0]->departure,
             plannedDeparture: $stopovers[0]->plannedDeparture,
@@ -136,11 +147,13 @@ class TRIASDeparturesHandler
     }
 
     public function createStopover(
-                 $call,
-        string   $fallbackStopId,
-        string   $lineName,
+        $call,
+        string $fallbackStopId,
+        string $lineId,
+        string $lineName,
+        string $shortName,
         ?ModeDto $mode,
-        string   $direction
+        string $direction
     ): FPTFStopover
     {
         $stop = !is_object($call->StopPointRef) && isset($call->StopPointRef) ? $call->StopPointRef : $fallbackStopId;
@@ -151,12 +164,12 @@ class TRIASDeparturesHandler
         $timetabledDeparture = $call->ServiceDeparture->TimetabledTime ?? null;
         $estimatedDeparture = $call->ServiceDeparture->EstimatedTime ?? $timetabledDeparture;
         $departureDelay = $estimatedDeparture && $timetabledDeparture ?
-            (int) round((strtotime($estimatedDeparture) - strtotime($timetabledDeparture)) / 60)
+            (int)round((strtotime($estimatedDeparture) - strtotime($timetabledDeparture)) / 60)
             : null;
         $timetabledArrival = $call->ServiceArrival->TimetabledTime ?? null;
         $estimatedArrival = $call->ServiceArrival->EstimatedTime ?? $timetabledArrival;
-        $arrivalDelay = $estimatedArrival && $timetabledArrival?
-            (int) round((strtotime($estimatedArrival) - strtotime($timetabledArrival)) / 60)
+        $arrivalDelay = $estimatedArrival && $timetabledArrival ?
+            (int)round((strtotime($estimatedArrival) - strtotime($timetabledArrival)) / 60)
             : null;
 
         $plannedBay = $call->PlannedBay->Text ?? null;
@@ -164,7 +177,7 @@ class TRIASDeparturesHandler
 
         return new FPTFStopover(
             stop: $stop,
-            line: new FPTFLine($lineName, $lineName),
+            line: new FPTFLine($lineId, $lineName, $shortName),
             mode: $mode,
             direction: $direction,
             arrival: $estimatedArrival,

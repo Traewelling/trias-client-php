@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace TriasClient\trias\Service;
 
-use ReflectionClass;
 use TriasClient\types\FriendlyTrias\ModeDto;
 use TriasClient\types\Simple\PtModesEnumeration;
 use TriasClient\types\Simple\SubModes\AirSubmodeEnumeration;
